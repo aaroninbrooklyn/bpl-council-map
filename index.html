@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>BPL Branches + Council Districts Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYWFyb25pbmJyb29rbHluIiwiYSI6ImNtOGowMmZ0dzBjMDgycnB4eWdhZW9nZ2sifQ.Z70awiKsIraT8Mfh-T_iAg';
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/aaroninbrooklyn/cm8tinshc00nd01sdgf0b8nrf', // Replace this
+    center: [-73.95, 40.65],
+    zoom: 11
+  });
+
+  // Add search bar
+  const geocoder = new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken,
+    mapboxgl: mapboxgl,
+    marker: false
+  });
+
+  map.addControl(geocoder);
+
+  // When user selects an address
+  geocoder.on('result', (e) => {
+    const coords = e.result.geometry.coordinates;
+
+    // Remove old marker
+    if (window.searchMarker) window.searchMarker.remove();
+
+    // Drop new marker
+    window.searchMarker = new mapboxgl.Marker()
+      .setLngLat(coords)
+      .addTo(map);
+
+    // Zoom to result
+    map.flyTo({ center: coords, zoom: 14 });
+
+    // Check if point is in any council district
+    const point = map.project(coords);
+    const features = map.queryRenderedFeatures(point, {
+      layers: ['layers: ['nyc-council-districts-city-council-districtsgeo-export-3c6d3bb5fd3e4a74a1b5427ff0c46136shp']
+'] // Use your actual layer ID from Studio
+    });
+
+    let popupText = `<strong>Address:</strong> ${e.result.place_name}<br/>`;
+    if (features.length > 0) {
+      const district = features[0].properties.district || features[0].properties.CD;
+      popupText += `<strong>Council District:</strong> ${district}<br/>`;
+    } else {
+      popupText += `<em>No council district found here</em>`;
+    }
+
+    // Add popup to marker
+    window.searchMarker.setPopup(new mapboxgl.Popup().setHTML(popupText)).togglePopup();
+  });
+</script>
+</body>
+</html>
