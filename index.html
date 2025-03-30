@@ -20,7 +20,7 @@
 
   const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/aaroninbrooklyn/cm8tinshc00nd01sdgf0b8nrf',
+    style: 'mapbox://styles/aaroninbrooklyn/'cm8tinshc00nd01sdgf0b8nrf', // Replace this
     center: [-73.95, 40.65],
     zoom: 11
   });
@@ -52,7 +52,7 @@
     // Check if point is in any council district
     const point = map.project(coords);
     const features = map.queryRenderedFeatures(point, {
-      layers: ['nyc-council-districts-city-council-districtsgeo-export-3c6d3bb5fd3e4a74a1b5427ff0c46136shp']
+      layers: ['nyc-council-districts-city-council-districtsgeo-export-3c6d3bb5fd3e4a74a1b5427ff0c46136shp'] // Use your actual layer ID from Studio
     });
 
     let popupText = `<strong>Address:</strong> ${e.result.place_name}<br/>`;
