@@ -28,7 +28,7 @@
     zoom: 11
   });
 
-  // Add Geocoder (search bar)
+  // Add Geocoder
   const geocoder = new MapboxGeocoder({
     accessToken: mapboxgl.accessToken,
     mapboxgl: mapboxgl,
@@ -36,50 +36,44 @@
     placeholder: 'Search for an address'
   });
   map.addControl(geocoder);
-
-  // Add navigation controls (zoom in/out)
   map.addControl(new mapboxgl.NavigationControl());
 
-  // On map load
   map.on('load', () => {
-    // Add click popups for BPL branches
-    map.on('click', 'bpl-branches-bpl-branches-1-5vbipd', (e) => {
-  const props = e.features[0].properties;
-  const lngLat = e.lngLat;
+    // Click to show popup on branch dot
+    map.on('click', 'bpl-branch-dots', (e) => {
+      const props = e.features[0].properties;
+      const lngLat = e.lngLat;
 
-  const branchName = props.branch || 'Branch name unavailable';
-  const address = props.address || 'No address provided';
-  const amenities = props.Amenities || 'Not listed';
-  const subway = props.subway || '';
-  const bus = props.bus || '';
-  const transit = [subway, bus].filter(Boolean).join(', ') || 'No nearby transit listed';
+      const branchName = props.branch || 'Branch name unavailable';
+      const address = props.address || 'No address provided';
+      const amenities = props.Amenities || 'Not listed';
+      const subway = props.subway || '';
+      const bus = props.bus || '';
+      const transit = [subway, bus].filter(Boolean).join(', ') || 'No nearby transit listed';
 
-  const popupHTML = `
-    <strong>${branchName}</strong><br/><br/>
-    <strong>Address:</strong> ${address}<br/>
-    <strong>Amenities:</strong> ${amenities}<br/>
-    <strong>How to get here:</strong> ${transit}
-  `;
+      const popupHTML = `
+        <strong>${branchName}</strong><br/><br/>
+        <strong>Address:</strong> ${address}<br/>
+        <strong>Amenities:</strong> ${amenities}<br/>
+        <strong>How to get here:</strong> ${transit}
+      `;
 
-  new mapboxgl.Popup()
-    .setLngLat(lngLat)
-    .setHTML(popupHTML)
-    .addTo(map);
-});
+      new mapboxgl.Popup()
+        .setLngLat(lngLat)
+        .setHTML(popupHTML)
+        .addTo(map);
+    });
 
-    // Make sure branch layer is clickable
-    map.setLayoutProperty('bpl-branches-bpl-branches-1-5vbipd', 'visibility', 'visible');
-
-    // Change cursor on hover
-    map.on('mouseenter', 'bpl-branches-bpl-branches-1-5vbipd', () => {
+    // Change cursor to pointer on hover
+    map.on('mouseenter', 'bpl-branch-dots', () => {
       map.getCanvas().style.cursor = 'pointer';
     });
-    map.on('mouseleave', 'bpl-branches-bpl-branches-1-5vbipd', () => {
+    map.on('mouseleave', 'bpl-branch-dots', () => {
       map.getCanvas().style.cursor = '';
     });
   });
 
-  // On address search
+  // On geocoder result
   geocoder.on('result', (e) => {
     const coords = e.result.geometry.coordinates;
 
@@ -91,10 +85,9 @@
 
     map.flyTo({ center: coords, zoom: 14 });
 
-    // Check which council district the searched point is in
     const point = map.project(coords);
     const features = map.queryRenderedFeatures(point, {
-      layers: ['nyc-council-districts-city-council-districtsgeo-export-3c6d3bb5fd3e4a74a1b5427ff0c46136shp']
+      layers: ['nyc-council-districts']
     });
 
     let popupText = `<strong>Address:</strong> ${e.result.place_name}<br/>`;
