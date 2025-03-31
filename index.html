@@ -44,17 +44,28 @@
   map.on('load', () => {
     // Add click popups for BPL branches
     map.on('click', 'bpl-branches-bpl-branches-1-5vbipd', (e) => {
-      const props = e.features[0].properties;
-      const lngLat = e.lngLat;
+  const props = e.features[0].properties;
+  const lngLat = e.lngLat;
 
-      new mapboxgl.Popup()
-        .setLngLat(lngLat)
-        .setHTML(`
-          <strong>${props.Name}</strong><br/>
-          Council District: ${props.CouncilDistrict || 'Unknown'}
-        `)
-        .addTo(map);
-    });
+  const branchName = props.branch || 'Branch name unavailable';
+  const address = props.address || 'No address provided';
+  const amenities = props.Amenities || 'Not listed';
+  const subway = props.subway || '';
+  const bus = props.bus || '';
+  const transit = [subway, bus].filter(Boolean).join(', ') || 'No nearby transit listed';
+
+  const popupHTML = `
+    <strong>${branchName}</strong><br/><br/>
+    <strong>Address:</strong> ${address}<br/>
+    <strong>Amenities:</strong> ${amenities}<br/>
+    <strong>How to get here:</strong> ${transit}
+  `;
+
+  new mapboxgl.Popup()
+    .setLngLat(lngLat)
+    .setHTML(popupHTML)
+    .addTo(map);
+});
 
     // Make sure branch layer is clickable
     map.setLayoutProperty('bpl-branches-bpl-branches-1-5vbipd', 'visibility', 'visible');
