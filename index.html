@@ -28,18 +28,18 @@
     zoom: 11
   });
 
-  // Add Geocoder
   const geocoder = new MapboxGeocoder({
     accessToken: mapboxgl.accessToken,
     mapboxgl: mapboxgl,
     marker: false,
     placeholder: 'Search for an address'
   });
+
   map.addControl(geocoder);
   map.addControl(new mapboxgl.NavigationControl());
 
   map.on('load', () => {
-    // Handle clicks on BPL branch logos/labels
+    // Click on BPL branch icons/labels
     map.on('click', 'bpl-branch-labels', (e) => {
       const props = e.features[0].properties;
       const lngLat = e.lngLat;
@@ -47,9 +47,9 @@
       const branchName = props.branch || 'Branch name unavailable';
       const address = props.address || 'No address provided';
       const amenities = props.Amenities || 'Not listed';
+      const councilDistrict = props.CouncilDistrict || 'Not listed';
       const subway = props.subway || '';
       const bus = props.bus || '';
-      const councilDistrict = props.CouncilDistrict || 'Not listed';
       const transit = [subway, bus].filter(Boolean).join(', ') || 'No nearby transit listed';
 
       const popupHTML = `
@@ -74,7 +74,7 @@
     });
   });
 
-  // Geocoder result → show council district based on location (optional)
+  // Geocoder result logic — identify which council district the address is in
   geocoder.on('result', (e) => {
     const coords = e.result.geometry.coordinates;
 
@@ -86,14 +86,21 @@
 
     map.flyTo({ center: coords, zoom: 14 });
 
+    // Buffer box to hit nearby district polygons more reliably
     const point = map.project(coords);
-    const features = map.queryRenderedFeatures(point, {
-      layers: ['nyc-council-districts']
+    const buffer = 4; // pixels
+
+    const features = map.queryRenderedFeatures([
+      [point.x - buffer, point.y - buffer],
+      [point.x + buffer, point.y + buffer]
+    ], {
+      layers: ['nyc-council-districts'] // must match your Studio layer ID
     });
 
     let popupText = `<strong>Address:</strong> ${e.result.place_name}<br/>`;
+
     if (features.length > 0) {
-      const district = features[0].properties.CouncilDistrict || features[0].properties.CD || features[0].properties.district;
+      const district = features[0].properties.CounDist || 'Unavailable';
       popupText += `<strong>Council District:</strong> ${district}`;
     } else {
       popupText += `<em>No council district found here</em>`;
