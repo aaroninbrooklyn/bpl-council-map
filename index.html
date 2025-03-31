@@ -9,8 +9,11 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" rel="stylesheet" />
   <style>
-    body { margin: 0; padding: 0; }
+    body { margin: 0; padding: 0; font-family: sans-serif; }
     #map { width: 100vw; height: 100vh; }
+    .mapboxgl-popup-content {
+      font: 14px/1.4 sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -20,50 +23,77 @@
 
   const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/aaroninbrooklyn/'cm8tinshc00nd01sdgf0b8nrf', // Replace this
+    style: 'mapbox://styles/aaroninbrooklyn/cm8tinshc00nd01sdgf0b8nrf',
     center: [-73.95, 40.65],
     zoom: 11
   });
 
-  // Add search bar
+  // Add Geocoder (search bar)
   const geocoder = new MapboxGeocoder({
     accessToken: mapboxgl.accessToken,
     mapboxgl: mapboxgl,
-    marker: false
+    marker: false,
+    placeholder: 'Search for an address'
   });
-
   map.addControl(geocoder);
 
-  // When user selects an address
+  // Add navigation controls (zoom in/out)
+  map.addControl(new mapboxgl.NavigationControl());
+
+  // On map load
+  map.on('load', () => {
+    // Add click popups for BPL branches
+    map.on('click', 'bpl-branches-bpl-branches-1-5vbipd', (e) => {
+      const props = e.features[0].properties;
+      const lngLat = e.lngLat;
+
+      new mapboxgl.Popup()
+        .setLngLat(lngLat)
+        .setHTML(`
+          <strong>${props.Name}</strong><br/>
+          Council District: ${props.CouncilDistrict || 'Unknown'}
+        `)
+        .addTo(map);
+    });
+
+    // Make sure branch layer is clickable
+    map.setLayoutProperty('bpl-branches-bpl-branches-1-5vbipd', 'visibility', 'visible');
+
+    // Change cursor on hover
+    map.on('mouseenter', 'bpl-branches-bpl-branches-1-5vbipd', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'bpl-branches-bpl-branches-1-5vbipd', () => {
+      map.getCanvas().style.cursor = '';
+    });
+  });
+
+  // On address search
   geocoder.on('result', (e) => {
     const coords = e.result.geometry.coordinates;
 
-    // Remove old marker
     if (window.searchMarker) window.searchMarker.remove();
 
-    // Drop new marker
-    window.searchMarker = new mapboxgl.Marker()
+    window.searchMarker = new mapboxgl.Marker({ color: '#4264fb' })
       .setLngLat(coords)
       .addTo(map);
 
-    // Zoom to result
     map.flyTo({ center: coords, zoom: 14 });
 
-    // Check if point is in any council district
+    // Check which council district the searched point is in
     const point = map.project(coords);
     const features = map.queryRenderedFeatures(point, {
-      layers: ['nyc-council-districts-city-council-districtsgeo-export-3c6d3bb5fd3e4a74a1b5427ff0c46136shp'] // Use your actual layer ID from Studio
+      layers: ['nyc-council-districts-city-council-districtsgeo-export-3c6d3bb5fd3e4a74a1b5427ff0c46136shp']
     });
 
     let popupText = `<strong>Address:</strong> ${e.result.place_name}<br/>`;
     if (features.length > 0) {
-      const district = features[0].properties.district || features[0].properties.CD;
+      const district = features[0].properties.CD || features[0].properties.district;
       popupText += `<strong>Council District:</strong> ${district}<br/>`;
     } else {
       popupText += `<em>No council district found here</em>`;
     }
 
-    // Add popup to marker
     window.searchMarker.setPopup(new mapboxgl.Popup().setHTML(popupText)).togglePopup();
   });
 </script>
