@@ -50,13 +50,15 @@
       const subway = props.subway || '';
       const bus = props.bus || '';
       const transit = [subway, bus].filter(Boolean).join(', ') || 'No nearby transit listed';
+      const councilDistrict = props.CouncilDistrict || 'Unknown';
 
       const popupHTML = `
-        <strong>${branchName}</strong><br/><br/>
-        <strong>Address:</strong> ${address}<br/>
-        <strong>Amenities:</strong> ${amenities}<br/>
-        <strong>How to get here:</strong> ${transit}
-      `;
+      <strong>${branchName}</strong><br/><br/>
+      <strong>Address:</strong> ${address}<br/>
+      <strong>Amenities:</strong> ${amenities}<br/>
+      <strong>Council District:</strong> ${councilDistrict}<br/>
+      <strong>How to get here:</strong> ${transit}
+    `;
 
       new mapboxgl.Popup()
         .setLngLat(lngLat)
