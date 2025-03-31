@@ -28,7 +28,7 @@
     zoom: 11
   });
 
-  // Add geocoder
+  // Add Geocoder
   const geocoder = new MapboxGeocoder({
     accessToken: mapboxgl.accessToken,
     mapboxgl: mapboxgl,
@@ -39,7 +39,7 @@
   map.addControl(new mapboxgl.NavigationControl());
 
   map.on('load', () => {
-    // Handle clicks on BPL branch labels
+    // Handle clicks on BPL branch logos/labels
     map.on('click', 'bpl-branch-labels', (e) => {
       const props = e.features[0].properties;
       const lngLat = e.lngLat;
@@ -49,16 +49,16 @@
       const amenities = props.Amenities || 'Not listed';
       const subway = props.subway || '';
       const bus = props.bus || '';
+      const councilDistrict = props.CouncilDistrict || 'Not listed';
       const transit = [subway, bus].filter(Boolean).join(', ') || 'No nearby transit listed';
-      const councilDistrict = props.CouncilDistrict || 'Unknown';
 
       const popupHTML = `
-      <strong>${branchName}</strong><br/><br/>
-      <strong>Address:</strong> ${address}<br/>
-      <strong>Amenities:</strong> ${amenities}<br/>
-      <strong>Council District:</strong> ${councilDistrict}<br/>
-      <strong>How to get here:</strong> ${transit}
-    `;
+        <strong>${branchName}</strong><br/><br/>
+        <strong>Address:</strong> ${address}<br/>
+        <strong>Amenities:</strong> ${amenities}<br/>
+        <strong>Council District:</strong> ${councilDistrict}<br/>
+        <strong>How to get here:</strong> ${transit}
+      `;
 
       new mapboxgl.Popup()
         .setLngLat(lngLat)
@@ -74,7 +74,7 @@
     });
   });
 
-  // Geocoder result → show council district info
+  // Geocoder result → show council district based on location (optional)
   geocoder.on('result', (e) => {
     const coords = e.result.geometry.coordinates;
 
@@ -93,7 +93,7 @@
 
     let popupText = `<strong>Address:</strong> ${e.result.place_name}<br/>`;
     if (features.length > 0) {
-      const district = features[0].properties.CD || features[0].properties.district;
+      const district = features[0].properties.CouncilDistrict || features[0].properties.CD || features[0].properties.district;
       popupText += `<strong>Council District:</strong> ${district}`;
     } else {
       popupText += `<em>No council district found here</em>`;
