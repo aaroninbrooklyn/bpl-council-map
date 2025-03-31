@@ -39,8 +39,8 @@
   map.addControl(new mapboxgl.NavigationControl());
 
   map.on('load', () => {
-    // Click to show popup on branch dot
-    map.on('click', 'bpl-branch-dots', (e) => {
+    // Click popups on logo symbols
+    map.on('click', 'bpl-branch-labels', (e) => {
       const props = e.features[0].properties;
       const lngLat = e.lngLat;
 
@@ -64,16 +64,15 @@
         .addTo(map);
     });
 
-    // Change cursor to pointer on hover
-    map.on('mouseenter', 'bpl-branch-dots', () => {
+    map.on('mouseenter', 'bpl-branch-labels', () => {
       map.getCanvas().style.cursor = 'pointer';
     });
-    map.on('mouseleave', 'bpl-branch-dots', () => {
+    map.on('mouseleave', 'bpl-branch-labels', () => {
       map.getCanvas().style.cursor = '';
     });
   });
 
-  // On geocoder result
+  // Geocoder logic for council districts
   geocoder.on('result', (e) => {
     const coords = e.result.geometry.coordinates;
 
